@@ -36,7 +36,7 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
-.backend/data/bookings.json
-.backend/env
+backend/data/bookings.json
+backend/.env
 .DS_Store
-.backend/config.js
+backend/config.js
