@@ -6,6 +6,7 @@ import HomeScreen from './screens/HomeScreen';
 import BookingScreen from './screens/BookingScreen';
 import ConfirmationScreen from './screens/ConfirmationScreen';
 import AdminScreen from './screens/AdminScreen';
+import AdminLoginScreen from './screens/AdminLoginScreen';
 
 export type RootStackParamList = {
   Home: undefined;
@@ -25,6 +26,7 @@ export default function App() {
         <Stack.Screen name="Booking" component={BookingScreen} options={{ title: 'Make a Booking' }} />
         <Stack.Screen name="Confirmation" component={ConfirmationScreen} options={{ title: 'Confirmed' }} />
         <Stack.Screen name="Admin" component={AdminScreen} options={{ title: 'Client Bookings' }} />
+        <Stack.Screen name="AdminLogin" component={AdminLoginScreen} options={{ title: 'Admin Login' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

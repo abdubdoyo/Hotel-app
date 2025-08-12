@@ -1,17 +1,38 @@
 import React, { useState } from 'react';
-import { SafeAreaView, ScrollView, Text, View, TextInput, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import {
+  SafeAreaView,
+  ScrollView,
+  Text,
+  View,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
 import DateSelector from '../components/DateSelector';
+import { Room, Booking } from '../services/types';
 import { postBooking } from '../services/api';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-function diffDaysISO(startISO: string, endISO: string) {
+
+// Navigation param list (include other screens if needed)
+type RootStackParamList = {
+  Booking: { room: Room };
+  Confirmation: { booking: Booking };
+};
+
+type Props = NativeStackScreenProps<RootStackParamList, 'Booking'>;
+
+function diffDaysISO(startISO: string, endISO: string): number {
   const a = new Date(startISO);
   const b = new Date(endISO);
   const msPerDay = 1000 * 60 * 60 * 24;
   return Math.round((b.getTime() - a.getTime()) / msPerDay);
 }
 
-export default function BookingScreen({ route, navigation }: any) {
+export default function BookingScreen({ route, navigation }: Props) {
   const { room } = route.params;
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const today = new Date().toISOString().slice(0, 10);
@@ -25,6 +46,7 @@ export default function BookingScreen({ route, navigation }: any) {
       Alert.alert('Missing info', 'Please fill all fields.');
       return;
     }
+
     const nights = diffDaysISO(checkIn, checkOut);
     if (nights <= 0) {
       Alert.alert('Invalid dates', 'Check-out must be after check-in.');
@@ -32,16 +54,27 @@ export default function BookingScreen({ route, navigation }: any) {
     }
 
     setLoading(true);
+
     try {
-      const payload = { roomId: room.id, name, email, checkIn, checkOut, guests: parseInt(guests, 10) || 1 };
+      const payload = {
+        roomId: room.id,
+        roomName: room.name,
+        roomPrice: room.price,  
+        name,
+        email,
+        checkIn,
+        checkOut,
+        guests: parseInt(guests, 10) || 1,
+      };
       const result = await postBooking(payload);
-      if (result.success && result.booking) {
+
+      if (result.booking) {
         navigation.replace('Confirmation', { booking: result.booking });
       } else {
         Alert.alert('Booking failed', result.message || 'Unknown error');
       }
-    } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to book');
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to book');
     } finally {
       setLoading(false);
     }
@@ -55,12 +88,23 @@ export default function BookingScreen({ route, navigation }: any) {
 
         <View style={{ marginTop: 12 }}>
           <Text style={{ marginBottom: 6 }}>Full name</Text>
-          <TextInput value={name} onChangeText={setName} placeholder="Your name" style={{ padding: 10, borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 6 }} />
+          <TextInput
+            value={name}
+            onChangeText={setName}
+            placeholder="Your name"
+            style={{ padding: 10, borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 6 }}
+          />
         </View>
 
         <View style={{ marginTop: 12 }}>
           <Text style={{ marginBottom: 6 }}>Email</Text>
-          <TextInput value={email} onChangeText={setEmail} placeholder="you@example.com" keyboardType="email-address" style={{ padding: 10, borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 6 }} />
+          <TextInput
+            value={email}
+            onChangeText={setEmail}
+            placeholder="you@example.com"
+            keyboardType="email-address"
+            style={{ padding: 10, borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 6 }}
+          />
         </View>
 
         <View style={{ marginTop: 12 }}>
@@ -75,18 +119,33 @@ export default function BookingScreen({ route, navigation }: any) {
 
         <View style={{ marginTop: 12 }}>
           <Text style={{ marginBottom: 6 }}>Guests</Text>
-          <TextInput value={guests} onChangeText={setGuests} keyboardType="number-pad" style={{ padding: 10, borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 6 }} />
+          <TextInput
+            value={guests}
+            onChangeText={setGuests}
+            keyboardType="number-pad"
+            style={{ padding: 10, borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 6 }}
+          />
         </View>
 
         <View style={{ marginTop: 16 }}>
           <Text style={{ fontWeight: '700' }}>Price per night: ${room.price}</Text>
           <Text style={{ marginTop: 6 }}>Estimated nights: {Math.max(0, diffDaysISO(checkIn, checkOut))}</Text>
-          <Text style={{ marginTop: 6, fontSize: 16, fontWeight: '600' }}>Estimated total: ${Math.max(0, diffDaysISO(checkIn, checkOut) * room.price)}</Text>
+          <Text style={{ marginTop: 6, fontSize: 16, fontWeight: '600' }}>
+            Estimated total: ${Math.max(0, diffDaysISO(checkIn, checkOut) * room.price)}
+          </Text>
         </View>
 
         <View style={{ marginTop: 20 }}>
-          <TouchableOpacity onPress={handleConfirm} style={{ backgroundColor: '#059669', padding: 12, borderRadius: 8, alignItems: 'center' }} disabled={loading}>
-            {loading ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '700' }}>Confirm Booking</Text>}
+          <TouchableOpacity
+            onPress={handleConfirm}
+            style={{ backgroundColor: '#059669', padding: 12, borderRadius: 8, alignItems: 'center' }}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={{ color: '#fff', fontWeight: '700' }}>Confirm Booking</Text>
+            )}
           </TouchableOpacity>
         </View>
       </ScrollView>

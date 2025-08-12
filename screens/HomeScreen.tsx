@@ -2,9 +2,29 @@ import React, { useEffect, useState } from 'react';
 import { SafeAreaView, View, Text, ActivityIndicator, FlatList, Button } from 'react-native';
 import RoomCard from '../components/RoomCard';
 import { fetchRooms } from '../services/api';
+// import {Room} from '../services/types';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-export default function HomeScreen({ navigation }: any) {
-  const [rooms, setRooms] = useState<any[]>([]);
+type Room = {
+  id: string;
+  name: string;
+  price: number;
+  image: string;
+  description: string;
+};
+
+type RootStackParamList = {
+  Home: undefined;
+  Booking: { room: Room };
+  Admin: undefined;
+};
+
+type Props = {
+  navigation: NativeStackNavigationProp<RootStackParamList, 'Home'>;
+};
+
+export default function HomeScreen({ navigation }: Props) {
+  const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -15,37 +35,67 @@ export default function HomeScreen({ navigation }: any) {
         const data = await fetchRooms();
         if (mounted) setRooms(data);
       } catch (e: any) {
-        setError(e.message || 'Could not load rooms. Is backend running at http://localhost:4000?');
+        setError(
+          e.message ||
+            'Could not load rooms. Is backend running at http://localhost:5000?'
+        );
       } finally {
         if (mounted) setLoading(false);
       }
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
-      <View style={{ padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+      <View
+        style={{
+          padding: 16,
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
         <Text style={{ fontSize: 20, fontWeight: '700' }}>Ebisa Hotel</Text>
-        <Button title="Admin" onPress={() => navigation.navigate('Admin')} />
+        <Button title="Admin" onPress={() => navigation.navigate('AdminLogin')} />
       </View>
 
       <View style={{ paddingHorizontal: 16, paddingBottom: 12 }}>
-        {loading ? <ActivityIndicator /> : error ? (
-          <View style={{ padding: 12, backgroundColor: '#fee2e2', borderRadius: 8 }}>
+        {loading ? (
+          <ActivityIndicator />
+        ) : error ? (
+          <View
+            style={{
+              padding: 12,
+              backgroundColor: '#fee2e2',
+              borderRadius: 8,
+            }}
+          >
             <Text style={{ color: '#b91c1c' }}>{error}</Text>
             <Text style={{ marginTop: 6, color: '#374151' }}>
-              Quick tips: run the backend with `node backend/server.js` and ensure CORS is enabled.
+              Quick tips: run the backend with `node backend/server.js` and
+              ensure CORS is enabled.
             </Text>
           </View>
         ) : (
           <FlatList
             data={rooms}
             keyExtractor={(r) => r.id}
-            renderItem={({ item }) => <RoomCard room={item} onBook={() => navigation.navigate('Booking', { room: item })} />}
+            renderItem={({ item }) => (
+              <RoomCard
+                room={item}
+                onBook={() => navigation.navigate('Booking', { room: item })}
+              />
+            )}
             numColumns={3}
             columnWrapperStyle={{ justifyContent: 'space-between' }}
-            contentContainerStyle={{ paddingTop: 8, paddingBottom: 48, paddingHorizontal: 8 }}
+            contentContainerStyle={{
+              paddingTop: 8,
+              paddingBottom: 48,
+              paddingHorizontal: 8,
+            }}
           />
         )}
       </View>

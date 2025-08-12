@@ -37,4 +37,6 @@ yarn-error.*
 *.tsbuildinfo
 
 .backend/data/bookings.json
+.backend/env
 .DS_Store
+.backend/config.js
